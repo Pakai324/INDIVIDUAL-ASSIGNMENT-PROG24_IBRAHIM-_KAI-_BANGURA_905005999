@@ -1,43 +1,44 @@
-# Digital Exam & Results Management System
+# Citizen Complaint System
 
-A simple Python program that lets a school create exams, record results, correct mistakes, publish results, and let each candidate check their own result with a candidate code. Built with Object-Oriented Programming (OOP) 
-**Domain:** Education  
-**Problem:** Exam results kept on paper or in loose spreadsheets are slow to total, easy to get wrong, and often show students' names to everyone. This tool calculates percentages, grades and pass rates automatically, locks results once they are published, and lets each candidate see only their own result, on any computer with Python.
+A simple Python program that lets citizens report public service problems (water, electricity, roads, health, education, waste) and lets a district office track each complaint from submission to resolution. Built with Object-Oriented Programming (OOP) 
+
+**Domain:** Government  
+**Problem:** Citizens often do not know whether their complaint was received or what happened to it, and offices struggle to see which complaints have waited too long. This tool gives every complaint a reference ID, a clear status history, and an overdue alert, on any computer with Python.
 
 ## Features
 
-- Create an exam (course code, title and total marks) and receive an exam ID
-- Add each candidate's score using a candidate code, such as `S-101`, never a name
-- Correct a score before the exam is published
-- Automatic percentage, letter grade (A to F) and Pass or Fail for every result
-- Exam statistics: average, highest score, pass rate and number of each grade
-- Publish an exam: this locks the results so they cannot be changed
-- Candidates check their own results by code, and only from published exams
-- Remove an exam and its results
-- Checks every input (scores out of range, duplicate results, invalid codes) and shows clear error messages instead of crashing
+- Submit a complaint (category, area and description) and receive an automatically generated reference ID
+- Track any complaint by its reference ID and see its full status history
+- Update a complaint's status: In review, Resolved or Rejected (with an optional note)
+- Closed complaints (Resolved or Rejected) are locked, so their history cannot be changed
+- Suggest a starting priority by category (High, Medium or Low)
+- Show overdue complaints: open longer than 7 days (High), 14 days (Medium) or 30 days (Low)
+- Show a category summary
+- Remove a complaint (for example one sent by mistake)
+- Checks every input and shows clear error messages instead of crashing
 
 ## How to Run
 
 1. Install Python 3.8 or later.
 2. Download or clone this repository:
- 
+   
+   ```
 3. Run the program:
    ```
-   python exam_results_system.py
+   python citizen_complaint_system.py
    ```
 
-The program starts empty and opens a menu. You add your own exams:
+The program starts empty and opens a menu. You add your own complaints:
 
 ```
-1. Create exam  2. Add result  3. Correct score  4. Publish exam
-5. Show exams  6. Show exam results  7. Check my results
-8. Remove exam  9. Exit
+1. Submit complaint  2. Update status  3. Show all  4. Track one
+5. Overdue complaints  6. Category summary  7. Remove complaint  8. Exit
 ```
 
-To create an exam, type the course code, title and total marks on one line, separated by commas (the title cannot contain a comma):
+To submit a complaint, type the category, area and description on one line, separated by commas:
 
 ```
-MATH101,Algebra Midterm,100
+Water,Kissy,No water from the community tap for three days
 ```
 
 Sample data is available but does not run by default: call `demo(registry)` in the last lines of the file to load it.
@@ -46,92 +47,75 @@ Sample data is available but does not run by default: call `demo(registry)` in t
 
 | File | Purpose |
 |------|---------|
-| `exam_results_system.py` | Classes, demo and menu |
+| `citizen_complaint_system.py` | Classes, demo and menu |
 | `README.md` | Documentation |
 | `LICENSE` | MIT open-source licence |
 
 ## OOP Concepts Used
 
 ### Task 1: Classes and Objects
-- **`Exam`**: attributes `exam_id`, `course_code`, `title`, `total_marks`, `pass_mark`, `status`, `published_on`, `results`; methods `add_result()`, `correct_score()`, `publish()`, `update_record()`, `has_result()`, `result_for()`, `average_score()`, `highest_score()`, `pass_rate()`, `describe_result()`, `display_info()`, `display_results()`
-- **`ExamRegistry`**: attributes `school_name`, `exams`; methods `add_exam()`, `find()`, `display_all()`, `remove_exam()`, `check_candidate()`, `status_summary()`
-- The registry holds and manages `Exam` objects, which demonstrates interaction between objects. For example, `check_candidate()` asks each exam for its status and for that candidate's score.
+- **`Complaint`**: attributes `complaint_id`, `category`, `area`, `description`, `priority`, `status_log`; methods `update_status()`, `update_record()`, `current_status()`, `is_closed()`, `days_open()`, `is_overdue()`, `display_info()`
+- **`ComplaintRegistry`**: attributes `office_name`, `complaints`; methods `add_complaint()`, `find()`, `display_all()`, `remove_complaint()`, `display_overdue()`, `category_summary()`
+- The registry holds and manages `Complaint` objects, which demonstrates interaction between objects. For example, `display_overdue()` asks each complaint whether it `is_overdue()`, and `category_summary()` reads each complaint's category.
 
 ### Task 2: Data Structure
-- A **dictionary** (`{exam_id: Exam}`) stores all exams, so any exam can be found instantly by its ID.
-- `add_exam()` and `display_all()` add and display records.
-- **Bonus (tuples):** each result is a **tuple** `(candidate_code, score)`, and an exam's `results` is a tuple of these. Tuples cannot be changed, so adding or correcting a result builds a new tuple. The grade scale is also a tuple of `(minimum percentage, grade)` tuples. The dictionary is the only data structure holding the exam objects.
+- A **dictionary** (`{complaint_id: Complaint}`) stores all complaints, so any record can be found instantly by its reference ID.
+- `add_complaint()` and `display_all()` add and display records.
+- **Bonus (tuples):** each status change is a **tuple** `(date, status, note)`, and a complaint's `status_log` is a tuple of these. Tuples cannot be changed, so each update builds a new tuple and the history of a complaint cannot be rewritten by accident. The lists of allowed categories, statuses and priorities are also tuples. The dictionary is the only data structure holding the complaint objects.
 
 ### Task 3: Methods
 | Type | Method | Purpose |
 |------|--------|---------|
-| Instance | `add_result()`, `correct_score()`, `publish()`, `update_record()`, `average_score()`, `pass_rate()`, `display_results()` and others | Work on one exam's data and enforce the rules (no changes after publishing, no duplicate results) |
-| Class (`@classmethod`) | `Exam.from_string("MATH101, Algebra Midterm, 100")` | Alternative way to create an exam from one line of text |
-| Class (`@classmethod`) | `Exam.grade_scale_text()` | Builds the grade scale text from the shared grade scale |
-| Static (`@staticmethod`) | `Exam.percentage()` | Converts a score to a percentage |
-| Static (`@staticmethod`) | `Exam.grade()` | Converts a percentage to a letter grade |
-| Static (`@staticmethod`) | `Exam.is_pass()` | Checks a percentage against the pass mark |
-| Static (`@staticmethod`) | `Exam.normalize_candidate()` | Checks and standardises a candidate code |
+| Instance | `update_status()`, `update_record()`, `current_status()`, `is_closed()`, `days_open()`, `is_overdue()`, `display_info()` | Work on one complaint's data |
+| Class (`@classmethod`) | `Complaint.from_string("Water,Kissy,No water...")` | Alternative way to create a complaint from one line of text |
+| Class (`@classmethod`) | `Complaint.category_options()` | Gives the allowed categories as text for prompts and errors |
+| Static (`@staticmethod`) | `Complaint.suggest_priority()` | Suggests a starting priority from the category |
+| Static (`@staticmethod`) | `Complaint.overdue_limit()` | Gives the number of days allowed for each priority |
+| Static (`@staticmethod`) | `Complaint.normalize_category()` and `Complaint.normalize_status()` | Check a category or status typed in any capitalisation |
 
 ## Digital Public Goods (DPG) Alignment
 
 | DPG Principle | How this project meets it |
 |---------------|---------------------------|
 | **Open-source** | The full source code is public on GitHub under the MIT licence, so anyone can use, study, modify and share it. |
-| **Inclusive and accessible design** | Plain-language prompts, a numbered menu, and clear error messages that say how to fix a mistake. The grade scale is shown when the program starts. It runs on any low-spec computer, needs no internet connection and has no cost. |
-| **Privacy-respecting** | No student names or personal data are stored. Results belong to a short candidate code chosen by the school, and the program rejects entries that look like names (spaces or other characters). A candidate can see only their own result, and only after the exam is published. Data is kept in memory only and is not sent anywhere. An exam can be removed at any time. |
-| **Modular and reusable** | `Exam` and `ExamRegistry` are separate, self-contained classes. They can be imported into other projects, for example a timetable tool or an attendance tracker, without changing the code. The start block means importing the file does not run the menu. |
+| **Inclusive and accessible design** | Plain-language prompts, a numbered menu, and clear error messages that say how to fix a mistake. Input is accepted in any capitalisation. It runs on any low-spec computer, needs no internet connection and has no cost. Anyone can submit a complaint without creating an account. |
+| **Privacy-respecting** | Complaints are anonymous. Only a category, a general area (district or ward), a description and a status history are stored. There are no names, phone numbers, addresses or ID numbers, and the prompt reminds users not to type personal details. A citizen tracks a complaint using the reference ID only. Data is kept in memory only and is not sent anywhere. A complaint can be removed at any time. |
+| **Modular and reusable** | `Complaint` and `ComplaintRegistry` are separate, self-contained classes. They can be imported into other projects, for example a permit tracker or a feedback system, without changing the code. The start block means importing the file does not run the menu. |
 
 ## Sample Output
 
 ```
-Grade scale: A = 80%+  B = 70%+  C = 60%+  D = 50%+  F = 0%+
-
+1. Submit complaint  2. Update status  3. Show all  4. Track one
+5. Overdue complaints  6. Category summary  7. Remove complaint  8. Exit
 Choose: 1
-Course code,title,total marks (e.g. MATH101,Algebra Midterm,100): math101,Algebra Midterm,100
-Exam created: EXM001 (MATH101 - Algebra Midterm).
+Do not include names, phone numbers or other personal details.
+Category,area,description (categories: Water, Electricity, Roads, Health, Education, Waste, Other):
+water,Kissy,No water from the community tap for three days
+Complaint received. Your reference ID is CMP001.
 
 Choose: 2
-Exam ID: exm001
-Use a candidate code (like S-101), never a student name.
-Candidate code: s-101
-Score: 78
-Result added.
-
-Choose: 2
-Exam ID: EXM001
-Candidate code: S-102
-Score: 45.5
-Result added.
+Complaint ID: cmp001
+New status: In review, Resolved, Rejected
+Status: in review
+Short note (optional): Sent to water team
+Updated. CMP001 is now: In review.
 
 Choose: 4
-Exam ID: EXM001
-EXM001 is now published.
-
-Choose: 6
-Exam ID: EXM001
-ID: EXM001 | MATH101 | Algebra Midterm | Total: 100.0 | Pass mark: 50.0% | Status: Published | Results: 2
-    S-101 | 78.0/100.0 | 78.0% | Grade B | Pass
-    S-102 | 45.5/100.0 | 45.5% | Grade F | Fail
-    Average: 61.8 | Highest: 78.0 | Pass rate: 50.0%
-    Grades -> A: 0  B: 1  C: 0  D: 0  F: 1
-
-Choose: 7
-Your candidate code: s-102
-
-=== Published results for S-102 ===
-MATH101 | Algebra Midterm | 45.5/100.0 | 45.5% | Grade F | Fail
+Complaint ID: CMP001
+ID: CMP001 | Water | Kissy | Priority: High | Status: In review | Open: 0 day(s)
+    Issue: No water from the community tap for three days
+    - 2026-10-18: Submitted (Complaint received)
+    - 2026-10-18: In review (Sent to water team)
 ```
 
 ## Limitations and Future Improvements
 
-- Results are lost when the program closes (kept in memory for privacy). A future version could add optional local storage.
-- Anyone who has the program can add or publish results, and anyone who knows a candidate code can look it up. A future version could add staff logins and candidate PINs.
-- The grade scale and pass mark are general values. Each school could set its own.
+- Complaints are lost when the program closes (kept in memory for privacy). A future version could add optional local storage.
+- Anyone who has the program can update a status. A future version could add a staff login.
+- Priorities and overdue limits are general values. Each office could set its own.
 - Add a graphical interface and local-language support (e.g. Krio).
 
 ## Author
-
 Ibrahim Kai Bangura
 
 ## Licence
